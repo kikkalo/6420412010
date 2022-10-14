@@ -111,7 +111,7 @@ memory usage: 906.5+ KB
 2. ตัด N/A ใน column Product ออกไป เนื่องจากไม่สามารถใช้ได้
 3. สร้าง df2 ขึ้นมาใหม่ เพื่อคัดเฉพาะ category ที่เป็น N/A
 4. เราจะทำการเพิ่ม category ใน N/A เราจึง list ข้อมูล product ออกมาดู เพื่ออ้างอิงว่าเป็น category อะไร
-(ในตอนแรกตั้งใจจะใช้ fillna แต่เนื่องจากข้อมูลใน แต่ละ row ต้องอ้างอิง column อื่น และต้องมีเงื่อนไขด้วย จึงเปลี่ยนมาสร้าง def เพื่อเขียนเงื่อนไขแทน)
+**(ในตอนแรกตั้งใจจะใช้ fillna แต่เนื่องจากข้อมูลใน แต่ละ row ต้องอ้างอิง column อื่น และต้องมีเงื่อนไขด้วย จึงเปลี่ยนมาสร้าง def เพื่อเขียนเงื่อนไขแทน)**
 ```
 array(['Doritos Dinamita Chile Lemon', 'Doritos Spicy Nacho',
        'Mini Chips Ahoy - Go Paks', 'Oreo Mini - Go Paks',
@@ -146,7 +146,7 @@ df_vending
 ```
 
 9. ทำการเพิ่ม column Day เพื่อระบุชื่อวันในแต่ละ row
-(ในตอนแรกจะใช้ regex เพื่อ replace ค่าวัน แต่เนื่องจากเรายังต้องการใช้ข้อมูลที่เป็นวันที่ในการวิเคราะห์ จึงใช้วิธีการนี้แทน  และเขียนโค้ดสั้นกว่าด้วย เพราะหาก replace จะต้องทำ 7 รอบ แทนชื่อวันทุกวัน)
+**(ในตอนแรกจะใช้ regex เพื่อ replace ค่าวัน แต่เนื่องจากเรายังต้องการใช้ข้อมูลที่เป็นวันที่ในการวิเคราะห์ จึงใช้วิธีการนี้แทน  และเขียนโค้ดสั้นกว่าด้วย เพราะหาก replace จะต้องทำ 7 รอบ แทนชื่อวันทุกวัน)**
 ```
 df_vending['Day'] = df_vending['TransDate'].dt.day_name()
 df_vending
@@ -203,7 +203,17 @@ df_vending
 **ข้อเสนอแนะ : อาจจะปรับเปลี่ยนการวิเคราะห์ โดยเริ่มจากวันแรกที่ EB Public Library เริ่มเปิดใช้งาน เพื่อความแม่นยำยิ่งขึ้นของข้อมูล**
 
 3. สร้างกราฟเพื่อดูข้อมูลระหว่าง วันต่าง ๆ และรายได้ โดยเส้นจะแบ่งตาม Location ของ vending machine
+- เพื่อให้ชัดเจนขึ้น จึงนำมาทำ heatmap เพื่อดูข้อมูลที่ cross ระหว่าง Day และ Location
+- สร้าง dataframe อันใหม่ โดย pivot ข้อมูลระหว่าง Day และ Location แลให้ข้อมูลในตารางเป็น LineTotal($)
+- ในขั้นตอนนี้ ตอนแรกชื่อวันจะเรียงตามตัวอักษร ทำให้ดูยาก จึงมีการ sort Day ใหม่ให้เรียงเป็นวันอาทิตย์-วันเสาร์
+```
+df_vending['Day'] = pd.Categorical(df_vending['Day'], ["Sunday", "Monday", "Tuesday","Wednesday","Thursday","Friday","Saturday"])
+piv = df_vending.pivot_table(index="Location", columns="Day", values="LineTotal",aggfunc='sum')
+display(piv)
 
+sns.set(rc={'figure.figsize':(12,6)})
+ax = sns.heatmap(piv,annot=True,fmt='.1f', cmap="YlGnBu")
+```
 ![image](https://user-images.githubusercontent.com/115805661/195906058-e6725475-113d-41bf-b458-ef07ffd698c7.png)
 - พบว่าที่ GuttenPlans มีรายได้สูงสุดระหว่างวันจันทร์-วันศุกร์
 - Earle Asphalt มีรายได้ต่ำสุดเมื่อเทียบกับที่อื่น ๆ
