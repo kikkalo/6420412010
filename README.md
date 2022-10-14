@@ -108,11 +108,52 @@ memory usage: 906.5+ KB
 
 # 3. Cleansing Data
 1. จากขั้นตอนการเช็คข้อมูล เราจะพบว่า column Product มี N/A จึงได้ทำการเลือกมาดู
-```df[df[ 'Product'].isna()][['Product'] ]```
 2. ตัด N/A ใน column Product ออกไป เนื่องจากไม่สามารถใช้ได้
+3. สร้าง df2 ขึ้นมาใหม่ เพื่อคัดเฉพาะ category ที่เป็น N/A
+4. เราจะทำการเพิ่ม category ใน N/A เราจึง list ข้อมูล product ออกมาดู เพื่ออ้างอิงว่าเป็น category อะไร
+(ในตอนแรกตั้งใจจะใช้ fillna แต่เนื่องจากข้อมูลใน แต่ละ row ต้องอ้างอิง column อื่น และต้องมีเงื่อนไขด้วย จึงเปลี่ยนมาสร้าง def เพื่อเขียนเงื่อนไขแทน)
 ```
-df = df.dropna(subset=['Product'])
-print(df.shape)
+array(['Doritos Dinamita Chile Lemon', 'Doritos Spicy Nacho',
+       'Mini Chips Ahoy - Go Paks', 'Oreo Mini - Go Paks',
+       'Teddy Grahams - Go Paks', 'Starbucks Doubleshot Energy - Coffee',
+       'Canada Dry - Ginger Ale & Lemonde', 'Canada Dry - Ginger Ale'],
+      dtype=object)
+```
+5. สร้าง def ขึ้นมาเพื่อใส่ค่า category โดยกำหนดเงื่อนไขดังด้านล่างนี้ใน df2
+```
+def assign_Result(product):
+    if product == 'Canada Dry - Ginger Ale & Lemonde' or product == 'Canada Dry - Ginger Ale':
+        result = 'Carbonated'
+    elif product == 'Starbucks Doubleshot Energy - Coffee':
+        result = 'Non Carbonated'
+    else:
+        result = 'Food'
+
+    return result
+df2['Category'] = df2['Product'].apply(assign_Result)
+```
+6. ทำการ drop row ที่ category เป็น N/A ทิ้ง บน df เพื่อเตรียม concatenate กับ df2 ที่สร้างใหม่
+7. Concatenate ระหว่าง df และ df2 จะได้เป็น df_vending
+```
+df_vending = pd.concat( [df, df2], ignore_index=True  )
+df_vending
+```
+8. เนื่องจาก TransDate เป็น object จึงทำการเปลี่ยน Dtype ให้เป็น datetime เพื่องานต่อการจัดการข้อมูล
+```
+df_vending['TransDate'] = pd.to_datetime( df_vending['TransDate'] )
+df_vending.info()
+df_vending
 ```
 
+9. ทำการเพิ่ม column Day เพื่อระบุชื่อวันในแต่ละ row
+(ในตอนแรกจะใช้ regex เพื่อ replace ค่าวัน แต่เนื่องจากเรายังต้องการใช้ข้อมูลที่เป็นวันที่ในการวิเคราะห์ จึงใช้วิธีการนี้แทน  และเขียนโค้ดสั้นกว่าด้วย เพราะหาก replace จะต้องทำ 7 รอบ แทนชื่อวันทุกวัน)
+```
+df_vending['Day'] = df_vending['TransDate'].dt.day_name()
+df_vending
+```
+# 4. Descriptive Statistics
+1. ดูข้อมูลทางสถิติพื้นฐาน เช่น mean max min ของภาพรวม
+2. ดูข้อมูลแยกตาม Attribute ต่าง ๆ (ดูเพิ่มเติมได้ในโค้ดค่ะ)
+
+#5. Visualization
 
